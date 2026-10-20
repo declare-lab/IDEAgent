@@ -77,3 +77,8 @@ nohup.out
 *.npy
 *.arrow
 *.parquet
+
+# Verifiable search: run outputs and the ALE-Bench data and tools (verifiable/setup_alebench.sh)
+/verifiable/program_qd/runs/
+/verifiable/third_party/ale-bench/
+/verifiable/third_party/ac-library/

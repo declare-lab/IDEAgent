@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/title_card.png" alt="IDEAgent: Quality-Diversity search for scientific ideation" width="640">
+</p>
+
 # 🧠 IDEAgent
 
 **Agentic Quality-Diversity Search for Research Idea Generation**
@@ -5,26 +9,33 @@
 An agentic quality-diversity (QD) search system for generating research ideas,
 plus baseline generation methods used for comparison.
 
+## 📝 Changelog
+
+- **2026-10-20**: Added `verifiable/`: IDEAgent on AlphaResearch and ALE-Bench Lite, the
+  four baselines under the same program condition, and the Yield evaluation under the
+  three-judge diversity jury.
+
 ## 📖 Abstract
 
-> Large Language Models (LLMs) have significantly automated the process of scientific
-> discovery over the past few years. However, existing systems share one core limitation:
-> they generate and optimize ideas independently for either Quality or Diversity. This
-> often leads to the generation of ideas in close proximity to one another or to a large
-> set of trivial, unsound, or unclear concepts. In this work, we instead argue that
-> research ideation should be treated as a conjunction of both objectives and framed as a
-> Quality-Diversity (QD) search. In line with this perspective, we introduce IDEAgent, a
-> multi-agent framework that manages the evolution of ideas through lineages. We jointly
-> drive Quality using multi-objective feedback for dedicated repair and refinement, while
-> Diversity is achieved through lightweight sequential memory and explicit comparison
-> against completed ideas, their historical ancestors, and rejected proposals. To
-> systematically evaluate this QD conjunction, we develop Yield, a joint metric that
-> computes the largest set of mutually diverse ideas that satisfy a predetermined quality
-> threshold. Finally, through evaluations across 32 topics spanning 8 domains of Computer
-> Science, we show that IDEAgent outperforms the best baseline by 3.89x on Yield, while
-> achieving non-zero Yield on 8x more topics. We further corroborate these findings
-> through an analysis of quality improvements, showing that repair and refinement are
-> crucial for building logical rigor and clarity while preserving non-obviousness.
+> Large Language Models (LLMs) have significantly advanced the automation of scientific
+> discovery. However, existing systems share a core limitation: they optimize ideas
+> independently for either *Quality* or *Diversity*. This often results in closely
+> related ideas or large sets of trivial, unsound, or unclear concepts. We instead argue
+> that research ideation should be framed as a conjunction of *Quality* and *Diversity*
+> objectives, i.e., a *Quality-Diversity* **(QD)** search. Accordingly, we introduce
+> IDEAgent, a *multi-agent* framework that tracks idea evolution through *lineages*. We
+> jointly drive *Quality* using multi-objective feedback for repair and refinement,
+> while *Diversity* is achieved through *lightweight* sequential memory and explicit
+> comparison against completed ideas, historical variants, and rejected proposals. To
+> evaluate this joint objective, we develop Yield, a metric that computes the largest
+> mutually diverse set of ideas satisfying predefined quality thresholds. Across 32
+> topics spanning 8 CS domains, IDEAgent outperforms the best baseline by 3.89× on
+> Yield, while achieving Yield of at least 2 on 8× as many topics. We further analyze
+> quality improvements, showing that repair and refinement improve logical rigor and
+> clarity while preserving non-obviousness. Lastly, we extend IDEAgent to two algorithm
+> discovery tasks for verifiable quality judgment and find that it still consistently
+> outperforms all baselines, and yields the largest set of high-quality and diverse
+> programs that beat a trivial/standard baseline.
 
 ## 🗂️ What Is Here
 
@@ -36,6 +47,8 @@ plus baseline generation methods used for comparison.
 │   ├── simple/        # stateless-independent, single-shot batch, and
 │   │                  # sequential-memory baselines
 │   └── nova/          # NOVA-style closed-book baseline
+├── verifiable/        # IDEAgent on verifiable domains (AlphaResearch,
+│                      # ALE-Bench): ideas with programs that are run and scored
 ├── scripts/           # runners and evaluators (run_ideagent.py,
 │                      # eval_ideas.py, select_lineage_representatives.py)
 ├── configs/           # canonical YAML configs for each pipeline
@@ -111,6 +124,15 @@ IDEAgent outperforms the best baseline (NOVA) by **3.89×** on Yield(τ=7).
 
 `data/examples/` holds sample generations from IDEAgent and every baseline, one
 JSONL file per method, over the same fixed set of topics for direct comparison.
+
+## 🔬 Verifiable Search
+
+`verifiable/` runs IDEAgent where an idea's quality can be measured: each idea comes
+with the complete program that implements it, which is run and scored on
+[AlphaResearch](https://github.com/answers111/alpha-research) (9 mathematical
+construction problems) and [ALE-Bench](https://github.com/SakanaAI/ALE-Bench) Lite
+(7 AtCoder Heuristic Contest problems). Diversity is judged by a three-judge jury.
+See [`verifiable/README.md`](verifiable/README.md) for the setup, runs and evaluation.
 
 ## 📄 Citation
 

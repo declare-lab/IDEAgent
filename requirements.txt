@@ -6,6 +6,5 @@ google-genai
 anthropic
 rich
 tqdm
-pytest
 scikit-learn
 matplotlib

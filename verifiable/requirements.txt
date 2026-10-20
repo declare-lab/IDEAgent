@@ -1,0 +1,7 @@
+# The verifiable search on top of the repository's requirements.txt. The ideator's programs run in this interpreter,
+# so these are also the libraries a program may import.
+numpy==2.5.3
+networkx==3.7
+sympy==1.14.0
+# Model serving (may live in its own environment; see VLLM_PYTHON in program_qd/config.py)
+vllm==0.28.0

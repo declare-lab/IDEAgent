@@ -1,0 +1,3 @@
+[submodule "verifiable/third_party/alpha-research"]
+	path = verifiable/third_party/alpha-research
+	url = https://github.com/answers111/alpha-research.git
