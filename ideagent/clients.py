@@ -15,12 +15,10 @@ before the next begins. The learning loop may overlap independent role memory up
 from __future__ import annotations
 
 import asyncio
+import backoff
 import contextvars
-import functools
 import json
 import os
-import random
-import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Protocol
 
@@ -91,46 +89,14 @@ def _completion_metadata(completion: Any) -> dict[str, Any]:
 
 def _retry(fn: Callable) -> Callable:
     """Retry a client call on ANY exception (timeouts, transient generation errors), up to
-    ``MAX_TRIES`` with exponential backoff. Uses the ``backoff`` library when available and
-    falls back to an equivalent in-house decorator otherwise."""
-    try:
-        import backoff  # type: ignore
-
-        return backoff.on_exception(backoff.expo, Exception, max_tries=MAX_TRIES)(fn)
-    except ModuleNotFoundError:
-        @functools.wraps(fn)
-        def wrapper(*args: Any, **kwargs: Any):
-            delay = 1.0
-            for attempt in range(1, MAX_TRIES + 1):
-                try:
-                    return fn(*args, **kwargs)
-                except Exception:
-                    if attempt >= MAX_TRIES:
-                        raise
-                    time.sleep(delay + random.random() * 0.25)
-                    delay *= 2
-        return wrapper
+    ``MAX_TRIES`` with exponential backoff."""
+    return backoff.on_exception(backoff.expo, Exception, max_tries=MAX_TRIES)(fn)
 
 
 def _async_retry(fn: Callable) -> Callable:
-    """Async version of ``_retry`` — uses ``asyncio.sleep`` so it never blocks the event loop."""
-    try:
-        import backoff  # type: ignore
-
-        return backoff.on_exception(backoff.expo, Exception, max_tries=MAX_TRIES)(fn)
-    except ModuleNotFoundError:
-        @functools.wraps(fn)
-        async def wrapper(*args: Any, **kwargs: Any):
-            delay = 1.0
-            for attempt in range(1, MAX_TRIES + 1):
-                try:
-                    return await fn(*args, **kwargs)
-                except Exception:
-                    if attempt >= MAX_TRIES:
-                        raise
-                    await asyncio.sleep(delay + random.random() * 0.25)
-                    delay *= 2
-        return wrapper
+    """Async version of ``_retry`` — backoff waits with ``asyncio.sleep``, so it never blocks
+    the event loop."""
+    return backoff.on_exception(backoff.expo, Exception, max_tries=MAX_TRIES)(fn)
 
 
 class LLMClient(Protocol):
