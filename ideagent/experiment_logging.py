@@ -97,6 +97,8 @@ def write_run_manifest(
 
 def _usage_records(value: Any) -> Iterator[dict[str, Any]]:
     if isinstance(value, dict):
+        if value.get("checkpoint_replay"):
+            return
         usage = value.get("usage")
         if isinstance(usage, dict):
             yield usage

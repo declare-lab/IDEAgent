@@ -22,6 +22,8 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Protocol
 
+from ideagent.request_checkpoint import checkpointed, request_response, request_response_async
+
 MAX_TRIES = 5
 
 
@@ -189,6 +191,7 @@ class VLLMOpenAIClient(_ResponseMetadataMixin):
     def generate(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         return self.generate_many(messages, n=1, **kwargs)[0]
 
+    @checkpointed
     @_retry
     def generate_many(self, messages: list[dict[str, str]], *, n: int = 1, **kwargs: Any) -> list[str]:
         if int(n) <= 0:
@@ -196,7 +199,7 @@ class VLLMOpenAIClient(_ResponseMetadataMixin):
         request = self._chat_request(messages, kwargs)
         if int(n) != 1:
             request["n"] = int(n)
-        completion = self._chat_completion_create(**request)
+        completion = request_response(lambda: self._chat_completion_create(**request))
         self._set_response_metadata(_completion_metadata(completion))
         choices = getattr(completion, "choices", None)
         if choices is None and isinstance(completion, dict):
@@ -327,12 +330,13 @@ class GeminiClient(_ResponseMetadataMixin):
         self._genai = genai
         self._init_response_metadata()
 
+    @checkpointed
     @_retry
     def generate(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         turns, cfg = _build_gemini_config({**kwargs, "_messages": messages, "_model_id": self.model_id})
-        response = self.client.models.generate_content(
+        response = request_response(lambda: self.client.models.generate_content(
             model=self.model_id, contents=turns, config=cfg
-        )
+        ))
         self._set_response_metadata({
             "response_id": getattr(response, "response_id", None),
             "response_model": getattr(response, "model_version", None),
@@ -344,12 +348,13 @@ class GeminiClient(_ResponseMetadataMixin):
         })
         return _extract_gemini_text(response)
 
+    @checkpointed
     @_async_retry
     async def generate_async(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         turns, cfg = _build_gemini_config({**kwargs, "_messages": messages, "_model_id": self.model_id})
-        response = await self.client.aio.models.generate_content(
+        response = await request_response_async(lambda: self.client.aio.models.generate_content(
             model=self.model_id, contents=turns, config=cfg
-        )
+        ))
         self._set_response_metadata({
             "response_id": getattr(response, "response_id", None),
             "response_model": getattr(response, "model_version", None),
@@ -364,12 +369,13 @@ class GeminiClient(_ResponseMetadataMixin):
     def generate_many(self, messages: list[dict[str, str]], *, n: int = 1, **kwargs: Any) -> list[str]:
         """Gemini has no native multi-candidate request, so fan out n independent
         generate() calls (each already @_retry'd) in parallel instead."""
-        def one() -> tuple[str, dict[str, Any] | None]:
-            output = self.generate(messages, **kwargs)
+        def one(index) -> tuple[str, dict[str, Any] | None]:
+            child_kwargs = {**kwargs, "_checkpoint_slot": [kwargs.get("_checkpoint_slot"), index]}
+            output = self.generate(messages, **child_kwargs)
             return output, self.get_last_response_metadata()
 
         with ThreadPoolExecutor(max_workers=max(1, n)) as executor:
-            futures = [executor.submit(one) for _ in range(n)]
+            futures = [executor.submit(one, index) for index in range(n)]
             results = [future.result() for future in futures]
         self._set_response_metadata({
             "fanout_calls": n,
@@ -462,6 +468,7 @@ class OpenAIClient(_ResponseMetadataMixin):
     def generate(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         return self.generate_many(messages, n=1, **kwargs)[0]
 
+    @checkpointed
     @_retry
     def generate_many(self, messages: list[dict[str, str]], *, n: int = 1, **kwargs: Any) -> list[str]:
         if int(n) <= 0:
@@ -469,7 +476,7 @@ class OpenAIClient(_ResponseMetadataMixin):
         request = self._chat_request(messages, kwargs)
         if int(n) != 1:
             request["n"] = int(n)
-        completion = self.client.chat.completions.create(**request)
+        completion = request_response(lambda: self.client.chat.completions.create(**request))
         self._set_response_metadata(_completion_metadata(completion))
         outputs = [self._choice_content(choice) for choice in completion.choices]
         if len(outputs) < int(n):
@@ -593,29 +600,32 @@ class AnthropicClient(_ResponseMetadataMixin):
             "finish_reasons": [getattr(message, "stop_reason", None)],
         })
 
+    @checkpointed
     @_retry
     def generate(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         request = _build_anthropic_request(self.model_id, messages, kwargs)
-        message = self.client.messages.create(**request)
+        message = request_response(lambda: self.client.messages.create(**request))
         self._set_metadata_from_message(message)
         return _extract_anthropic_text(message)
 
+    @checkpointed
     @_async_retry
     async def generate_async(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         request = _build_anthropic_request(self.model_id, messages, kwargs)
-        message = await self.async_client.messages.create(**request)
+        message = await request_response_async(lambda: self.async_client.messages.create(**request))
         self._set_metadata_from_message(message)
         return _extract_anthropic_text(message)
 
     def generate_many(self, messages: list[dict[str, str]], *, n: int = 1, **kwargs: Any) -> list[str]:
         """Claude has no native multi-candidate request, so fan out n independent
         generate() calls (each already @_retry'd) in parallel, matching GeminiClient."""
-        def one() -> tuple[str, dict[str, Any] | None]:
-            output = self.generate(messages, **kwargs)
+        def one(index) -> tuple[str, dict[str, Any] | None]:
+            child_kwargs = {**kwargs, "_checkpoint_slot": [kwargs.get("_checkpoint_slot"), index]}
+            output = self.generate(messages, **child_kwargs)
             return output, self.get_last_response_metadata()
 
         with ThreadPoolExecutor(max_workers=max(1, n)) as executor:
-            futures = [executor.submit(one) for _ in range(n)]
+            futures = [executor.submit(one, index) for index in range(n)]
             results = [future.result() for future in futures]
         self._set_response_metadata({
             "fanout_calls": n,

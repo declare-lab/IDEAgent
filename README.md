@@ -7,6 +7,9 @@
 
 ## 📝 Changelog
 
+- **2026-10-28**: Added request-level checkpoint/resume to `scripts/run_ideagent.py`
+  (`--checkpoint-dir`, `--resume`): an interrupted search replays its saved responses and
+  re-sends only unfinished requests ([#3](https://github.com/declare-lab/IDEAgent/pull/3)).
 - **2026-10-20**: Added `verifiable/`: IDEAgent on AlphaResearch and ALE-Bench, the
   four baselines under the same program condition, and the Yield evaluation under the
   three-judge diversity jury.
@@ -67,6 +70,30 @@ Set the relevant API keys as environment variables or in a `.env` file
 ```bash
 python scripts/run_ideagent.py --config configs/ideagent.yaml
 ```
+
+### Resume interrupted API requests
+
+Start a run with a request journal:
+
+```bash
+python scripts/run_ideagent.py --config configs/ideagent.yaml --checkpoint-dir runs/my-search
+```
+
+After interruption, run the same command with `--resume`:
+
+```bash
+python scripts/run_ideagent.py --config configs/ideagent.yaml --checkpoint-dir runs/my-search --resume
+```
+
+Every API response is saved to `requests.sqlite` in the checkpoint directory as it
+arrives, and outputs go to `data.output_dir` as usual. On `--resume`, topics that
+already finished are skipped, and the unfinished topic is rebuilt from the saved
+responses without calling the API or logging anything again. The run then continues
+from where it stopped, adding to the same outputs.
+
+If a role's model or generation settings (`temperature`, `max_new_tokens`, thinking,
+...) changed since the run started, `--resume` stops with an error naming the change:
+undo it to resume, or start afresh without `--resume` in a new `--checkpoint-dir`.
 
 ## 🧪 Run a Baseline
 
