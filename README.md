@@ -7,6 +7,8 @@
 
 ## 📝 Changelog
 
+- **2026-11-04**: Added the [project page](https://declare-lab.github.io/IDEAgent/), with an
+  explainer video of the search and its extension to verifiable algorithm discovery.
 - **2026-10-28**: Added request-level checkpoint/resume to `scripts/run_ideagent.py`
   (`--checkpoint-dir`, `--resume`): an interrupted search replays its saved responses and
   re-sends only unfinished requests ([#3](https://github.com/declare-lab/IDEAgent/pull/3)).

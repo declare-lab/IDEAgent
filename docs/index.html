@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IDEAgent: Agentic Quality-Diversity Search for Research Idea Generation</title>
+  <meta name="description" content="IDEAgent frames research ideation as a Quality-Diversity search: a multi-agent framework that evolves idea lineages with repair, refinement and explicit novelty checks.">
+  <meta property="og:title" content="IDEAgent: Agentic Quality-Diversity Search for Research Idea Generation">
+  <meta property="og:image" content="https://declare-lab.github.io/IDEAgent/static/images/title_card.png">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink:#1f1f1f; --muted:#555; --accent:#b5578f; --green:#1a9c2e; --line:#e5e5e5; --bg:#fff; --soft:#f7f5f8; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:"Noto Sans",system-ui,sans-serif; line-height:1.6; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+    header { text-align:center; padding: 56px 0 24px; }
+    h1 { font-family:"Source Serif 4",serif; font-size: 2.4rem; line-height:1.2; margin: 0 0 18px; font-weight:600; }
+    h1 .name { color: var(--accent); }
+    .authors { font-size: 1.1rem; margin: 6px 0; }
+    .affil { color: var(--muted); margin: 4px 0 20px; }
+    .buttons { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    .btn { display:inline-flex; align-items:center; gap:8px; background:#363636; color:#fff; padding:9px 18px; border-radius:999px; text-decoration:none; font-weight:600; font-size:.95rem; }
+    .btn:hover { background:#000; }
+    section { padding: 28px 0; }
+    h2 { font-family:"Source Serif 4",serif; text-align:center; font-size:1.7rem; margin: 0 0 18px; font-weight:600; }
+    video { width:100%; border-radius:10px; border:1px solid var(--line); display:block; }
+    .abstract { background:var(--soft); border-radius:12px; padding: 22px 26px; text-align:justify; }
+    .panels { display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .panels figure { margin:0; }
+    .panels img { width:100%; border:1px solid var(--line); border-radius:8px; }
+    figcaption { color:var(--muted); font-size:.92rem; text-align:center; margin-top:6px; }
+    @media (max-width: 760px) { .panels { grid-template-columns: 1fr; } h1 { font-size:1.8rem; } table { font-size:.85rem; } th, td { padding: 6px 6px; } }
+    .tablewrap { overflow-x:auto; }
+    table { border-collapse: collapse; margin: 0 auto 8px; font-size:.97rem; }
+    th, td { padding: 7px 14px; text-align:center; border-bottom: 1px solid var(--line); }
+    th { border-bottom: 2px solid var(--ink); }
+    td:first-child, th:first-child { text-align:left; }
+    tr.ours td { color: var(--green); }
+    tr.ours td:first-child, td b { font-weight:700; }
+    h3 { font-family:"Source Serif 4",serif; text-align:center; font-size:1.2rem; font-weight:600; margin: 22px 0 10px; }
+    .wide { margin: 0; }
+    .wide img { width:100%; border:1px solid var(--line); border-radius:8px; display:block; }
+    .changes { max-width: 860px; margin: 18px auto 0; padding-left: 22px; }
+    .changes li { margin: 6px 0; }
+    .changes .from { color: var(--muted); }
+    .note { color:var(--muted); font-size:.9rem; text-align:center; max-width: 760px; margin: 6px auto 0; }
+    pre { background:#f4f4f4; border-radius:10px; padding:16px; overflow-x:auto; font-size:.85rem; }
+    footer { color:var(--muted); text-align:center; font-size:.85rem; padding: 30px 0 50px; }
+    footer a { color: var(--muted); }
+    .authors a, .affil a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+    .authors a:hover, .affil a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="name">IDEAgent</span>: Agentic Quality-Diversity Search for Research Idea Generation</h1>
+    <div class="authors"><a href="https://varungumma.netlify.app">Varun Gumma</a>, Navonil Majumder, Soumitra Sinhahajari, <a href="https://soujanyaporia.github.io">Soujanya Poria</a></div>
+    <div class="affil"><a href="https://declare-lab.github.io">DeCLaRe Lab</a>, Nanyang Technological University, Singapore</div>
+    <div class="buttons">
+      <a class="btn" href="https://arxiv.org/pdf/2607.22375">📄 Paper</a>
+      <a class="btn" href="https://arxiv.org/abs/2607.22375">arXiv</a>
+      <a class="btn" href="https://github.com/declare-lab/IDEAgent">💻 Code</a>
+    </div>
+  </header>
+
+  <section>
+    <video controls preload="metadata" poster="static/images/title_card.png">
+      <source src="static/videos/IDEAgent.mp4" type="video/mp4">
+      Your browser does not support the video tag. <a href="static/videos/IDEAgent.mp4">Download the video</a>.
+    </video>
+  </section>
+
+  <section>
+    <h2>Abstract</h2>
+    <div class="abstract">
+      Large Language Models (LLMs) have significantly advanced the automation of scientific discovery. However, existing
+      systems share a core limitation: they optimize ideas independently for either <i>Quality</i> or <i>Diversity</i>.
+      This often results in closely related ideas or large sets of trivial, unsound, or unclear concepts. We instead argue
+      that research ideation should be framed as a conjunction of <i>Quality</i> and <i>Diversity</i> objectives, i.e., a
+      <i>Quality-Diversity</i> <b>(QD)</b> search. Accordingly, we introduce IDEAgent, a <i>multi-agent</i> framework that
+      tracks idea evolution through <i>lineages</i>. We jointly drive <i>Quality</i> using multi-objective feedback for
+      repair and refinement, while <i>Diversity</i> is achieved through <i>lightweight</i> sequential memory and explicit
+      comparison against completed ideas, historical variants, and rejected proposals. To evaluate this joint objective, we
+      develop Yield, a metric that computes the largest mutually diverse set of ideas satisfying predefined quality
+      thresholds. Across 32 topics spanning 8 CS domains, IDEAgent outperforms the best baseline by 3.89&times; on Yield,
+      while achieving Yield of at least 2 on 8&times; as many topics. We further analyze quality improvements, showing that
+      repair and refinement improve logical rigor and clarity while preserving non-obviousness. Lastly, we extend IDEAgent
+      to two algorithm discovery tasks for verifiable quality judgment and find that it still consistently outperforms all
+      baselines, and yields the largest set of high-quality and diverse programs that beat a trivial/standard baseline.
+      To encourage future research on QD-search-based ideation, we open-source IDEAgent at
+      <a href="https://github.com/declare-lab/IDEAgent">https://github.com/declare-lab/IDEAgent</a>.
+    </div>
+  </section>
+
+  <section>
+    <h2>Method at a Glance</h2>
+    <div class="panels">
+      <figure><img src="static/images/sequential.png" alt="Sequential generation with memory"><figcaption>Sequential generation with memory: each seed is repaired and refined before the next one starts.</figcaption></figure>
+      <figure><img src="static/images/evaluation.png" alt="Multi-agent evaluation"><figcaption>Diversity, quality and soundness judges decide whether an idea is rejected, repaired or accepted.</figcaption></figure>
+      <figure><img src="static/images/archive.png" alt="Quality-Diversity archive"><figcaption>Accepted ideas enter a quality-diversity archive of active, historical and rejected ideas.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>From Ideas to Verifiable Programs</h2>
+    <figure class="wide"><img src="static/images/verifiable_setup.png" alt="IDEAgent adapted to verifiable algorithm discovery: task definition, proposal plus program, sandboxed execution, a single fatal soundness check, and the unchanged diversity judge, critic and archive"></figure>
+    <ul class="changes">
+      <li><span class="from">Background papers &rarr;</span> the task definition and its runtime limits, plus a trivial baseline that every idea must beat.</li>
+      <li><span class="from">An idea &rarr;</span> a proposal together with the Python / C++ program that implements it.</li>
+      <li><span class="from">Non-obviousness and clarity judges &rarr;</span> removed. Quality is measured: the program runs in a sandbox (60&nbsp;s during search on AlphaResearch, the contest time limit on ALE-Bench), and Q<sub>i</sub> is its normalized progress from the trivial solution (0) to the best-known result (100).</li>
+      <li><span class="from">Soundness panel &rarr;</span> one fatal check: the program implements the proposal, with no shortcuts or hard-coded answers.</li>
+      <li><span class="from">Diversity judge, archive and critic &rarr;</span> unchanged; distinctness now lies in the central mechanism. A valid idea that does not beat the baseline gets one repair; one that does gets up to two refinements, and a higher-Q child replaces its parent.</li>
+      <li><span class="from">Models &rarr;</span> open models: Qwen3.8-27B as the Ideator; Qwen3.6-35B-A3B as the critic, soundness and diversity judges.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Results: Research Ideation (32 topics)</h2>
+    <div class="tablewrap"><table>
+      <tr><th>Method</th><th>Yield<br>(NB&ge;7)</th><th>Yield<br>(NB&ge;6)</th><th>Topics with &ge;1<br>qualifying idea (NB&ge;7)</th><th>Topics with &ge;1<br>qualifying idea (NB&ge;6)</th></tr>
+      <tr><td>Single-shot</td><td>0.000</td><td>0.000</td><td>0 / 32</td><td>0 / 32</td></tr>
+      <tr><td>Sequential-Memory</td><td>0.188</td><td>0.531</td><td>6 / 32</td><td>14 / 32</td></tr>
+      <tr><td>Stateless</td><td>0.250</td><td>0.812</td><td>7 / 32</td><td>24 / 32</td></tr>
+      <tr><td>NOVA</td><td>0.281</td><td>1.156</td><td>8 / 32</td><td>25 / 32</td></tr>
+      <tr class="ours"><td>IDEAgent</td><td><b>1.094</b></td><td><b>2.312</b></td><td><b>27 / 32</b></td><td><b>31 / 32</b></td></tr>
+    </table></div>
+    <p class="note">Jury average of two external judges; Yield at D&ge;7, S&ge;7, C&ge;6 with the stated non-obviousness (NB) threshold.</p>
+  </section>
+
+  <section>
+    <h2>Results: Verifiable Algorithm Discovery</h2>
+    <h3>AlphaResearch (Python; Q = 100 is the human best)</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Method</th><th>Q<sub>max</sub></th><th>Q<sub>avg</sub></th><th>Y<sub>0</sub></th><th>Y<sub>50</sub></th><th>Y<sub>75</sub></th><th>Y<sub>100</sub></th></tr>
+      <tr><td>Single-shot</td><td>53.2</td><td>16.9</td><td>2.78</td><td>1.00</td><td>0.44</td><td>0.33</td></tr>
+      <tr><td>Sequential-Memory</td><td>92.6</td><td>46.1</td><td>4.00</td><td>3.11</td><td>1.67</td><td>0.56</td></tr>
+      <tr><td>Stateless</td><td>93.5</td><td>47.8</td><td>4.11</td><td>3.11</td><td>1.78</td><td>0.56</td></tr>
+      <tr><td>NOVA</td><td>75.4</td><td>34.4</td><td>4.56</td><td>2.67</td><td>0.78</td><td>0.22</td></tr>
+      <tr class="ours"><td>IDEAgent</td><td><b>106.2</b></td><td><b>54.5</b></td><td><b>5.67</b></td><td><b>4.44</b></td><td><b>3.11</b></td><td><b>0.67</b></td></tr>
+    </table></div>
+    <h3>ALE-Bench (C++ heuristic contests; Q = 100 is the contest winner)</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Method</th><th>Q<sub>max</sub></th><th>Q<sub>avg</sub></th><th>Y<sub>0</sub></th><th>Y<sub>25</sub></th><th>Y<sub>50</sub></th><th>Y<sub>75</sub></th></tr>
+      <tr><td>Single-shot</td><td>14.8</td><td>6.2</td><td>1.14</td><td>0.43</td><td>0.43</td><td>0.00</td></tr>
+      <tr><td>Sequential-Memory</td><td>38.3</td><td>18.6</td><td>2.29</td><td>1.71</td><td>1.14</td><td>0.29</td></tr>
+      <tr><td>Stateless</td><td>45.1</td><td><b>22.7</b></td><td>2.29</td><td>1.71</td><td>0.57</td><td>0.00</td></tr>
+      <tr><td>NOVA</td><td>37.3</td><td>18.0</td><td>2.29</td><td>2.00</td><td>1.00</td><td>0.00</td></tr>
+      <tr class="ours"><td>IDEAgent</td><td><b>56.4</b></td><td>22.6</td><td><b>3.43</b></td><td><b>2.57</b></td><td><b>1.57</b></td><td><b>0.57</b></td></tr>
+    </table></div>
+    <p class="note">Y<sub>k</sub>: size of the largest set of mutually distinct ideas among those that clear the trivial solution with
+      progress Q<sub>i</sub>&nbsp;&ge;&nbsp;k (Y<sub>0</sub> counts every idea that clears it). Q<sub>max</sub> and Q<sub>avg</sub>: the highest and mean
+      Q<sub>i</sub> among a problem's ten final ideas. All averaged over a benchmark's problems; a pair is distinct when a majority of
+      three judges (Gemma 4 31B, MiniMax-M2.7, GLM-4.5-Air) say so. Bold marks the best value in each column.</p>
+  </section>
+
+  <section>
+    <h2>BibTeX</h2>
+<pre><code>@misc{gumma2026ideagentagenticqualitydiversitysearch,
+      title={IDEAgent: Agentic Quality-Diversity Search for Research Idea Generation},
+      author={Varun Gumma and Navonil Majumder and Soumitra Sinhahajari and Soujanya Poria},
+      year={2026},
+      eprint={2607.22375},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2607.22375},
+}</code></pre>
+  </section>
+
+  <footer>
+    <a href="https://declare-lab.github.io">DeCLaRe Lab</a>, NTU &middot; Correspondence: <a href="https://soujanyaporia.github.io">Soujanya Poria</a> (<a href="mailto:soujanya.poria@ntu.edu.sg">soujanya.poria@ntu.edu.sg</a>)
+  </footer>
+</div>
+</body>
+</html>
